@@ -26,6 +26,15 @@ steps:
     hugo version
   displayName: 'Verify Tools'
 
+- powershell: |
+    mkdir exampleSite\themes
+    mkdir exampleSite\themes\influencer-hugo
+    xcopy layouts exampleSite\themes\influencer-hugo\layouts /E /I /Y
+    xcopy assets exampleSite\themes\influencer-hugo\assets /E /I /Y
+    xcopy static exampleSite\themes\influencer-hugo\static /E /I /Y
+    copy theme.toml exampleSite\themes\influencer-hugo\
+  displayName: 'Prepare Theme Folder'
+
 # 5️⃣ Build Hugo site from exampleSite
 - powershell: |
     cd exampleSite
