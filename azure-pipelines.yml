@@ -1,0 +1,53 @@
+trigger:
+- main
+
+pool:
+  name: selfhosted
+
+variables:
+  azureSubscription: 'ARM Service Connect'
+  appName: 'influencerhugo'
+
+steps:
+
+# 1️⃣ Checkout repository
+- checkout: self
+
+# 2️⃣ Install Go (required for Hugo modules)
+- task: GoTool@0
+  inputs:
+    version: '1.21'
+  displayName: 'Install Go'
+
+
+# 4️⃣ Verify installations
+- powershell: |
+    go version
+    hugo version
+  displayName: 'Verify Tools'
+
+# 5️⃣ Build Hugo site from exampleSite
+- powershell: |
+    cd exampleSite
+    hugo mod tidy
+    hugo --gc --minify
+  displayName: 'Build Hugo Site'
+
+# 6️⃣ Archive ONLY exampleSite/public
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Build.SourcesDirectory)/exampleSite/public'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/site.zip'
+    replaceExistingArchive: true
+  displayName: 'Archive Site'
+
+# 7️⃣ Deploy to Azure App Service
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: '$(azureSubscription)'
+    appType: 'webAppLinux'
+    appName: '$(appName)'
+    package: '$(Build.ArtifactStagingDirectory)/site.zip'
+  displayName: 'Deploy to Azure'
